@@ -1,37 +1,54 @@
-const cardComponent = function (cityValue, tempValue, humValue, cloudValue) {
-    return`
-    <div>Helység: ${cityValue}</div>
-    <div>Hőmérséklet: ${tempValue}°C</div>
-    <div>Páratartalom: ${humValue}%</div>
-    <div>Felhőzet mértéke: ${cloudValue}%</div>
-    `
-}
 const loadEvent = async function () {
-    const rootElement = document.getElementById("root")
     
+    const rootElement = document.getElementById("root")
+
+    // Root ID feltöltése
     const dataListComponent = `
-    <label for="choose-a-city">Choose a city:</label>
-    <input type="text" list="chosen-cities" id="choose-a-city" name="choose-a-city">
-    <datalist id="chosen-cities">
-    </datalist>
+        <input type="text" list="chosen-cities" id="choose-a-city" name="choose-a-city" placeholder="Type here">
+        <datalist id="chosen-cities">
+        </datalist>
     `
     
     rootElement.insertAdjacentHTML("beforeend", dataListComponent)
+
+    rootElement.insertAdjacentHTML("beforeend", `
+                <div id="card">
+                    <div id="bottom-cont">
+                        <div class="temp"></div>
+                        <div class="citytime">
+                            <div class="city"></div>
+                            <div class="time"></div>
+                        </div>
+                    </div>    
+                    <div id="right-cont">
+                        <div class="title">Weather Details</div>
+                        <div class="humi">Humidity: </div>
+                        <div class="cloud">Cloud cover: </div>
+                        <div class="wind">Wind speed: </div>
+                        <div class="uv">UV radiation: </div>
+                    </div>
+                </div>
+        `
+    )
     
+    // Input value érzékelése
     let search = document.getElementById("choose-a-city");
     
     search.addEventListener("input", updateValue);
-    function updateValue () {
-        getCity(search.value)
+    function updateValue() {
+        if (search.value.length >= 3) {
+            cityList(search.value)           
+        }
     }
     
-    async function getCity (value) {
-        const response01 = await fetch("http://api.weatherapi.com/v1/search.json?key=c07efd10da9e4134a49130617221605&q=" + value)
-        const cities = await response01.json()
-        
-        insertResultCities(cities);
+    // Input value alapján fetch
+    async function cityList(value) {
+        const cityListResponse = await fetch("http://api.weatherapi.com/v1/search.json?key=c07efd10da9e4134a49130617221605&q=" + value)
+        const cityListJson = await cityListResponse.json()
+        insertResultCities(cityListJson);
     }
- 
+    
+    // Kapott .json file drop-down menübe töltése
     const insertResultCities = function(resultCities) {
         const citiesContainer = document.getElementById("chosen-cities")
 
@@ -44,30 +61,43 @@ const loadEvent = async function () {
             }
         }
     }
-    
+
+    // Enter event + az előző card adatainak ürítése
     search.addEventListener("keypress", pressEnter);
-    function pressEnter (event) {
+    function pressEnter(event) {
         if (event.key == "Enter") {
-            getFinalCity(search.value)
+            const cardDiv = document.getElementById("card");
+            cardDiv.remove();
+            finalCity(search.value)
         }
     }
     
-    async function getFinalCity (chosencity) {
-        const response = await fetch("http://api.weatherapi.com/v1/current.json?key=c07efd10da9e4134a49130617221605&q="+ chosencity +"&aqi=no")
-        const responseJson = await response.json()
-        
-        fillUpCard(responseJson)
+    // A kiválasztott város adatainak lekérése fetch segítségével
+    async function finalCity(chosencity) {
+        const finalCityResponse = await fetch("http://api.weatherapi.com/v1/current.json?key=c07efd10da9e4134a49130617221605&q="+ chosencity +"&aqi=no")
+        const finalCityJson = await finalCityResponse.json()
 
-        /*rootElement.insertAdjacentHTML("beforeend", `
-        <div>Helység: ${responseJson.location.name}</div>
-        <div>Hőmérséklet: ${responseJson.current.temp_c}°C</div>
-        <div>Páratartalom: ${responseJson.current.humidity}%</div>
-        <div>Felhőzet mértéke: ${responseJson.current.cloud}%</div>
-        `)*/
-    }
-
-    let fillUpCard = function(chosenCityValues) {
-        rootElement.insertAdjacentHTML("beforeend", cardComponent(chosenCityValues.location.name, chosenCityValues.current.temp_c, chosenCityValues.current.humidity, chosenCityValues.current.cloud))
+        // Az adatok megjelenítése a card div-en belül
+        rootElement.insertAdjacentHTML("beforeend", `
+            <div id="card">
+                <div id="bottom-cont">
+                    <div class="temp"> ${finalCityJson.current.temp_c}°</div>
+                    <div class="citytime">
+                        <div class="city"> ${finalCityJson.location.name}</div>
+                        <div class="time"> ${finalCityJson.location.localtime}</div>
+                    </div>
+                </div>
+                <div id="right-cont">
+                    <div class="title">Weather Details</div>
+                    <div class="humi">Humidity: ${finalCityJson.current.humidity}%</div>
+                    <div class="cloud">Cloud cover: ${finalCityJson.current.cloud}%</div>
+                    <div class="wind">Wind speed: ${finalCityJson.current.wind_kph} km/h</div>
+                    <div class="uv">UV radiation: ${finalCityJson.current.uv}</div>
+                </div>
+            </div>
+            `
+        )
     }
 }
+
 window.addEventListener("load", loadEvent)
