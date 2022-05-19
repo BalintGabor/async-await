@@ -1,3 +1,11 @@
+const cardComponent = function (cityValue, tempValue, humValue, cloudValue) {
+    return`
+    <div>Helység: ${cityValue}</div>
+    <div>Hőmérséklet: ${tempValue}°C</div>
+    <div>Páratartalom: ${humValue}%</div>
+    <div>Felhőzet mértéke: ${cloudValue}%</div>
+    `
+}
 const loadEvent = async function () {
     const rootElement = document.getElementById("root")
     
@@ -7,6 +15,7 @@ const loadEvent = async function () {
     <datalist id="chosen-cities">
     </datalist>
     `
+    
     rootElement.insertAdjacentHTML("beforeend", dataListComponent)
     
     let search = document.getElementById("choose-a-city");
@@ -35,22 +44,30 @@ const loadEvent = async function () {
             }
         }
     }
-
     
-    /*let chosencity = "London"
-    let url = "http://api.weatherapi.com/v1/current.json?key=c07efd10da9e4134a49130617221605&q="+ chosencity +"&aqi=no"
+    search.addEventListener("keypress", pressEnter);
+    function pressEnter (event) {
+        if (event.key == "Enter") {
+            getFinalCity(search.value)
+        }
+    }
+    
+    async function getFinalCity (chosencity) {
+        const response = await fetch("http://api.weatherapi.com/v1/current.json?key=c07efd10da9e4134a49130617221605&q="+ chosencity +"&aqi=no")
+        const responseJson = await response.json()
+        
+        fillUpCard(responseJson)
 
-    const response = await fetch(url)
-    const responseJson = await response.json()
-    console.log(responseJson);
-    rootElement.insertAdjacentHTML("beforeend", `
-            <div>Helység: ${responseJson.location.name}</div>
-            <div>Hőmérséklet: ${responseJson.current.temp_c}°C</div>
-            <div>Páratartalom: ${responseJson.current.humidity}%</div>
-            <div>Felhőzet mértéke: ${responseJson.current.cloud}%</div>
+        /*rootElement.insertAdjacentHTML("beforeend", `
+        <div>Helység: ${responseJson.location.name}</div>
+        <div>Hőmérséklet: ${responseJson.current.temp_c}°C</div>
+        <div>Páratartalom: ${responseJson.current.humidity}%</div>
+        <div>Felhőzet mértéke: ${responseJson.current.cloud}%</div>
         `)*/
+    }
 
-
+    let fillUpCard = function(chosenCityValues) {
+        rootElement.insertAdjacentHTML("beforeend", cardComponent(chosenCityValues.location.name, chosenCityValues.current.temp_c, chosenCityValues.current.humidity, chosenCityValues.current.cloud))
+    }
 }
 window.addEventListener("load", loadEvent)
-
