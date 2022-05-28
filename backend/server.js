@@ -1,6 +1,29 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const mediaTypes = {
+	"html": "text/html",
+	"jpeg": "image/jpeg",
+	"jpg": "image/jpeg",
+	"png": "image/png",
+	"svg": "image/svg+xml",
+	"json": "application/json",
+	"js": "text/javascript",
+	"css": "text/css",
+	"csv": "text/csv",
+	"mp3": "audio/mpeg",
+	"mp4": "video/mp4",
+	"oga": "audio/ogg",
+	"ogv": "video/ogg",
+	"pdf": "application/pdf",
+	"weba": "audio/webm",
+	"webm": "video/webm",
+	"webp": "image/webp",
+	"woff": "font/woff",
+	"woff2": "font/woff2",
+	"ttf": "font/ttf",
+	"gif": "image/gif"
+};
 
 const server = http.createServer((req, res) => {
 
@@ -51,12 +74,19 @@ const server = http.createServer((req, res) => {
 		if(fs.statSync(filePath).isDirectory()) {
 			filePath += '/index.html';
 		}
-		fs.readFile(filePath, (err, data) => {
+		fs.readFile(filePath, "binary", (err, data) => {
 			if(err) {
 				res.statusCode = 500;
 				res.end(errorHTML);
 			} else {
-				res.end(data);
+				let mediaType = mediaTypes[filePath.split('.').pop()];
+      
+				if (!mediaType) {
+					mediaType = 'text/plain';
+				}
+				res.writeHead(200, { "Content-Type": mediaType });
+				res.write(data, "binary");
+				res.end();
 			}
 		});
 	}

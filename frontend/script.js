@@ -1,5 +1,5 @@
 const loadEvent = async function () {
-    
+
     const rootElement = document.getElementById("root")
 
     // Root ID feltöltése
@@ -55,7 +55,14 @@ const loadEvent = async function () {
         for (const city of resultCities) {
             if (city.name !== null) {
                 console.log(city.name)
+                const options = []
+
+                
                 let cityHtml = `<option value="${city.name}">`
+                document.querySelectorAll("#chosen-cities > option").forEach((option) => {
+                    if (options.includes(option.value)) option.remove()
+                    else options.push(option.value)
+                })
                 
                 citiesContainer.insertAdjacentHTML("beforeend", cityHtml)
             }
